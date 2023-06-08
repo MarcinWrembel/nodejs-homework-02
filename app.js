@@ -25,7 +25,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: err.message });
 });
 
-const URI =process.env.URI;
+const URI = process.env.URI;
 const PORT = process.env.PORT || 3000;
 
 const connection = mongoose.connect(URI, {
@@ -37,6 +37,8 @@ connection
   .then(() => {
     app.listen(PORT, function () {
       console.log("Database connection successful");
+      // const dbName = mongoose.connection.db.databaseName;
+      // console.log("Connected to database:", dbName);
     });
   })
   .catch((err) => {

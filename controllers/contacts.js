@@ -30,7 +30,7 @@ const getById = async (req, res, next) => {
       res.status(404).json({
         status: "error",
         code: 404,
-        message: `Not found task id: ${id}`,
+        message: `Not found contact id: ${id}`,
         data: "Not Found",
       });
     }
@@ -56,7 +56,7 @@ const remove = async (req, res, next) => {
       res.status(404).json({
         status: "error",
         code: 404,
-        message: `Not found task id: ${id}`,
+        message: `Not found contact id: ${id}`,
         data: "Not Found",
       });
     }
@@ -68,6 +68,7 @@ const remove = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   const { name, email, phone } = req.body;
+
   try {
     const result = await service.createContact({ name, email, phone });
 
@@ -97,6 +98,34 @@ const update = async (req, res, next) => {
       res.status(404).json({
         status: "error",
         code: 404,
+        message: `Not found contact id: ${id}`,
+        data: "Not Found",
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+const switchStatus = async (res, req, next) => {
+  const { id } = req.params;
+  const { favorite } = req.body;
+  if (favorite === undefined) {
+    return res.status(400).json({ message: "Missing field favorite" });
+  }
+  try {
+    const result = await service.updateStatusContact(id, favorite);
+    if (result) {
+      res.json({
+        status: "success",
+        code: 200,
+        data: { contact: result },
+      });
+    } else {
+      res.status(404).json({
+        status: "error",
+        code: 404,
         message: `Not found task id: ${id}`,
         data: "Not Found",
       });
@@ -113,4 +142,5 @@ module.exports = {
   remove,
   create,
   update,
+  switchStatus,
 };

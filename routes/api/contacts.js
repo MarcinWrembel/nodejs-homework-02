@@ -1,20 +1,26 @@
 const express = require("express");
 const router = express.Router();
 const ctrlContact = require("../../controllers/contacts");
+const mongoose = require("mongoose");
 
-router.get("/",  ctrlContact.get);
+const validateObjectId = (req, res, next) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid ID" });
+  }
+  next();
+};
 
-router.get("/:contactId",  ctrlContact.getById);
+router.get("/", ctrlContact.get);
 
-router.post("/",  ctrlContact.create);
+router.get("/:contactId",validateObjectId, ctrlContact.getById);
 
-router.delete("/:contactId", ctrlContact.remove);
+router.post("/", ctrlContact.create);
 
-router.put("/:contactId",  ctrlContact.update);
+router.delete("/:contactId",validateObjectId, ctrlContact.remove);
 
-// if (name === undefined && email === undefined && phone === undefined) {
-//   res.status(400).json({ message: "missing fields" });
-//   return;
-// }
+router.put("/:contactId",validateObjectId, ctrlContact.update);
+
+router.patch("/:contactId/favorite", ctrlContact.switchStatus);
 
 module.exports = router;

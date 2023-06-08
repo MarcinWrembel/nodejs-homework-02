@@ -4,6 +4,7 @@ const crypto = require("crypto");
 
 const contactsPath = path.join("./models", "contacts.json");
 const contactsData = require("./contacts.json");
+const service=require("../service")
 
 const listContacts = async () => {
   try {
@@ -13,6 +14,7 @@ const listContacts = async () => {
     console.log(err.message);
   }
 };
+
 
 const getContactById = async (contactId) => {
   try {

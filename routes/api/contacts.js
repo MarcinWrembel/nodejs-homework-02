@@ -4,22 +4,28 @@ const ctrlContact = require("../../controllers/contacts");
 const mongoose = require("mongoose");
 
 const validateObjectId = (req, res, next) => {
-  const { id } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  const { contactId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(contactId)) {
     return res.status(400).json({ message: "Invalid ID" });
   }
   next();
 };
 
+// const checkData = (req, _, next) => {
+//   console.log(req.params);
+//   console.log(req.body);
+//   next();
+// };
+
 router.get("/", ctrlContact.get);
 
-router.get("/:contactId",validateObjectId, ctrlContact.getById);
+router.get("/:contactId", ctrlContact.getById);
 
 router.post("/", ctrlContact.create);
 
-router.delete("/:contactId",validateObjectId, ctrlContact.remove);
+router.delete("/:contactId", validateObjectId, ctrlContact.remove);
 
-router.put("/:contactId",validateObjectId, ctrlContact.update);
+router.put("/:contactId", validateObjectId, ctrlContact.update);
 
 router.patch("/:contactId/favorite", ctrlContact.switchStatus);
 

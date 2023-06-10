@@ -11,12 +11,6 @@ const validateObjectId = (req, res, next) => {
   next();
 };
 
-// const checkData = (req, _, next) => {
-//   console.log(req.params);
-//   console.log(req.body);
-//   next();
-// };
-
 router.get("/", ctrlContact.get);
 
 router.get("/:contactId", ctrlContact.getById);

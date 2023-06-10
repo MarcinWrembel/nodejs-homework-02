@@ -38,8 +38,6 @@ connection
   .then(() => {
     app.listen(PORT, function () {
       console.log("Database connection successful");
-      // const dbName = mongoose.connection.db.databaseName;
-      // console.log("Connected to database:", dbName);
     });
   })
   .catch((err) => {

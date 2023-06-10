@@ -118,9 +118,6 @@ const switchStatus = async (req, res, next) => {
   const { contactId } = req.params;
   const { favorite } = req.body;
 
-  console.log(req.params);
-  console.log(req.body);
-
   if (favorite === undefined) {
     return res.status(400).json({ message: "Missing field favorite" });
   }

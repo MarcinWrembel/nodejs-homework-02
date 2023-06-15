@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const ctrlContact = require("../../controllers/contacts");
+
 const mongoose = require("mongoose");
 
 const validateObjectId = (req, res, next) => {
@@ -17,7 +18,11 @@ router.get("/:contactId", ctrlContact.getById);
 
 router.post("/", ctrlContact.create);
 
-router.delete("/:contactId", validateObjectId, ctrlContact.remove);
+router.delete(
+  "/:contactId",
+  validateObjectId,
+  ctrlContact.remove
+);
 
 router.put("/:contactId", validateObjectId, ctrlContact.update);
 

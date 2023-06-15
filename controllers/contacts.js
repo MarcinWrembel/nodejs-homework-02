@@ -69,7 +69,7 @@ const remove = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   const { name, email, phone } = req.body;
-console.log(req.body);
+
   try {
     const result = await service.createContact({ name, email, phone });
 

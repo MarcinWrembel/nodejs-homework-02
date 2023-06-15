@@ -1,8 +1,8 @@
 const service = require("../service");
 
-const get = async (_, res, next) => {
+const get = async (req, res, next) => {
   try {
-    const results = await service.getAllContacts();
+    const results = await service.getAllContacts(req.user._id);
     res.json({
       status: "success",
       code: 200,
@@ -18,9 +18,10 @@ const get = async (_, res, next) => {
 
 const getById = async (req, res, next) => {
   const { contactId } = req.params;
+  const { _id } = req.user;
 
   try {
-    const result = await service.getContactById(contactId);
+    const result = await service.getContactById(contactId, _id);
     if (result) {
       res.json({
         status: "success",
@@ -43,9 +44,9 @@ const getById = async (req, res, next) => {
 
 const remove = async (req, res, next) => {
   const { contactId } = req.params;
-
+  const { _id } = req.user;
   try {
-    const result = await service.removeContact(contactId);
+    const result = await service.removeContact(contactId,_id);
     if (result) {
       res.json({
         status: "success",
@@ -69,9 +70,9 @@ const remove = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   const { name, email, phone } = req.body;
-
+  const { _id } = req.user;
   try {
-    const result = await service.createContact({ name, email, phone });
+    const result = await service.createContact({ name, email, phone},_id);
 
     res.status(201).json({
       status: "success",
@@ -87,13 +88,15 @@ const create = async (req, res, next) => {
 const update = async (req, res, next) => {
   const { contactId } = req.params;
   const { name, email, phone } = req.body;
+  const { _id } = req.user;
 
   try {
     const result = await service.updateContact(contactId, {
       name,
       email,
       phone,
-    });
+    },_id);
+    
     if (result) {
       res.json({
         status: "success",

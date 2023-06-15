@@ -1,38 +1,43 @@
 const Contact = require("./schemas/contact");
-const  User = require("./schemas/user");
+const User = require("./schemas/user");
 
-const getAllContacts = async () => {
-  return Contact.find();
+const getAllContacts = async (owner) => {
+  return Contact.find({ owner });
 };
 
-const getContactById = (contactId) => {
-  return Contact.findOne({ _id: contactId });
+const getContactById = (contactId, owner) => {
+  return Contact.findOne({ _id: contactId, owner });
 };
 
-
-const createContact = ({ name, email, phone }) => {
-  return Contact.create({ name, email, phone });
+const createContact = ({ name, email, phone }, owner) => {
+  return Contact.create({ name, email, phone, owner });
 };
 
-const updateContact = (contactId, fields) => {
-  return Contact.findByIdAndUpdate({ _id: contactId }, fields, { new: true });
+const updateContact = (contactId, fields, owner) => {
+  return Contact.findOneAndUpdate({ _id: contactId, owner }, fields, {
+    new: true,
+  });
 };
 
-const removeContact = (contactId) => {
-  return Contact.findByIdAndRemove({ _id: contactId });
+const removeContact = (contactId, owner) => {
+  return Contact.findOneAndRemove({ _id: contactId, owner });
 };
 
-const updateStatusContact = (contactId, favorite) => {
-  return Contact.findByIdAndUpdate({ _id: contactId }, { $set: { favorite } }, { new: true });
+const updateStatusContact = (contactId, favorite, owner) => {
+  return Contact.findByIdAndUpdate(
+    { _id: contactId, owner },
+    { $set: { favorite } },
+    { new: true }
+  );
 };
 
-const createtUser= (email,password)=>{
-  return User.create({email,password})
-}
+const createtUser = (email, password) => {
+  return User.create({ email, password });
+};
 
-const getUser= (email)=>{
-  return User.findOne({email})
-}
+const getUser = (email) => {
+  return User.findOne({ email });
+};
 
 module.exports = {
   getAllContacts,
@@ -42,5 +47,5 @@ module.exports = {
   removeContact,
   updateStatusContact,
   createtUser,
-  getUser
+  getUser,
 };

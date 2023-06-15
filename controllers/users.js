@@ -92,19 +92,29 @@ const create = async (req, res, next) => {
 };
 
 const getCurrent = async (req, res, next) => {
-  const { email } = req.user;
-  console.log(email);
+  const { email, subscription } = req.user;
 
   res.json({
     status: "success",
     code: 200,
     message: "Authorization was successful",
-    data: { user: email },
+    data: { user: email, subscription },
   });
+};
+
+const logOut = async (req, res, next) => {
+  try {
+    req.user.token = null;
+    await req.user.save();
+    res.status(204).json();
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = {
   create,
   getCurrent,
   logIn,
+  logOut,
 };

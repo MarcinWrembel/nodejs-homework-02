@@ -8,7 +8,7 @@ router.post("/signup", ctrlUser.create);
 
 router.post("/login",  ctrlUser.logIn);
 
-router.get("/logout");
+router.get("/logout",ctrlAuth.auth,ctrlUser.logOut);
 
 router.get("/current",ctrlAuth.auth,ctrlUser.getCurrent);
 

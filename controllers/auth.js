@@ -7,7 +7,7 @@ const auth = (req, res, next) => {
       return res.status(401).json({
         status: "error",
         code: 401,
-        message: "Unauthorized",
+        message: "Not authorized",
         data: "Unauthorized",
       });
     }

@@ -1,8 +1,8 @@
 const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
+const { auth } = require("./middleware/auth");
 const mongoose = require("mongoose");
-const {auth} = require("./controllers/auth");
 
 require("dotenv").config();
 
@@ -16,14 +16,14 @@ const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: true }));
 
-require('./config/config-passport')
+require("./config/config-passport");
 
-app.use("/api/contacts", auth,contactsRouter);
+app.use("/api/contacts", auth, contactsRouter);
 app.use("/api/users", usersRouter);
 
-app.use((req, res) => {
+app.use((_, res) => {
   res.status(404).json({ message: "Not found" });
 });
 

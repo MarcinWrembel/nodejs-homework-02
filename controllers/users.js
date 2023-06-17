@@ -1,7 +1,7 @@
 const service = require("../service");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
-const User = require("../service/schemas/user");
+const User = require("../models/user");
 require("dotenv").config();
 const secret = process.env.SECRET;
 
@@ -107,8 +107,43 @@ const logOut = async (req, res, next) => {
     req.user.token = null;
     await req.user.save();
     res.status(204).json();
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateSub = async (req, res, next) => {
+  const { subscription } = req.body;
+  const { _id } = req.user;
+
+  const subscriptOptions = ["starter", "pro", "business"];
+
+  const subscriptIndex = subscriptOptions.findIndex(
+    (el) => el === subscription
+  );
+
+  if (subscriptIndex || subscription === req.user.subscription) {
+    res.status(400).json({
+      status: "error",
+      code: 400,
+      message:
+        "Subscription should have on of value 'starter'/'pro'/'business' or set subscription is already in use",
+    });
+  }
+
+  try {
+    const result = await service.updateSubscription(subscription, _id);
+    if (result) {
+      res.json({
+        status: "success",
+        code: 200,
+        message: "Subscription was updated",
+        data: { email: result.email, subscription: result.subscription },
+      });
+    }
+  } catch (err) {
+    console.log(err.message);
+    next(err);
   }
 };
 
@@ -117,4 +152,5 @@ module.exports = {
   getCurrent,
   logIn,
   logOut,
+  updateSub,
 };

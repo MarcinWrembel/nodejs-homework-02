@@ -1,5 +1,5 @@
-const Contact = require("./schemas/contact");
-const User = require("./schemas/user");
+const Contact = require("../models/contact");
+const User = require("../models/user");
 
 const getAllContacts = async (owner) => {
   return Contact.find({ owner });
@@ -31,12 +31,24 @@ const updateStatusContact = (contactId, favorite, owner) => {
   );
 };
 
+const getFavoriteContacts = (owner, favorite) => {
+  return Contact.find({ owner, favorite });
+};
+
 const createtUser = (email, password) => {
   return User.create({ email, password });
 };
 
 const getUser = (email) => {
   return User.findOne({ email });
+};
+
+const updateSubscription = (subscription, owner) => {
+  return User.findByIdAndUpdate(
+    { _id: owner },
+    { $set: { subscription } },
+    { new: true }
+  );
 };
 
 module.exports = {
@@ -48,4 +60,6 @@ module.exports = {
   updateStatusContact,
   createtUser,
   getUser,
+  getFavoriteContacts,
+  updateSubscription,
 };

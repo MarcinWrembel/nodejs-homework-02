@@ -12,17 +12,13 @@ const validateObjectId = (req, res, next) => {
   next();
 };
 
-router.get("/", ctrlContact.get);
+router.get("/", ctrlContact.get, ctrlContact.getFavorite);
 
 router.get("/:contactId", ctrlContact.getById);
 
 router.post("/", ctrlContact.create);
 
-router.delete(
-  "/:contactId",
-  validateObjectId,
-  ctrlContact.remove
-);
+router.delete("/:contactId", validateObjectId, ctrlContact.remove);
 
 router.put("/:contactId", validateObjectId, ctrlContact.update);
 

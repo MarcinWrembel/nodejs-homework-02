@@ -1,15 +1,21 @@
 const service = require("../service");
 
 const get = async (req, res, next) => {
+  const { favorite } = req.query;
+
   try {
-    const results = await service.getAllContacts(req.user._id);
-    res.json({
-      status: "success",
-      code: 200,
-      data: {
-        contacts: results,
-      },
-    });
+    if (favorite === undefined) {
+      const results = await service.getAllContacts(req.user._id);
+      res.json({
+        status: "success",
+        code: 200,
+        data: {
+          contacts: results,
+        },
+      });
+    } else {
+      next();
+    }
   } catch (err) {
     console.error(err);
     next(err);
@@ -46,7 +52,7 @@ const remove = async (req, res, next) => {
   const { contactId } = req.params;
   const { _id } = req.user;
   try {
-    const result = await service.removeContact(contactId,_id);
+    const result = await service.removeContact(contactId, _id);
     if (result) {
       res.json({
         status: "success",
@@ -72,7 +78,7 @@ const create = async (req, res, next) => {
   const { name, email, phone } = req.body;
   const { _id } = req.user;
   try {
-    const result = await service.createContact({ name, email, phone},_id);
+    const result = await service.createContact({ name, email, phone }, _id);
 
     res.status(201).json({
       status: "success",
@@ -91,12 +97,16 @@ const update = async (req, res, next) => {
   const { _id } = req.user;
 
   try {
-    const result = await service.updateContact(contactId, {
-      name,
-      email,
-      phone,
-    },_id);
-    
+    const result = await service.updateContact(
+      contactId,
+      {
+        name,
+        email,
+        phone,
+      },
+      _id
+    );
+
     if (result) {
       res.json({
         status: "success",
@@ -120,12 +130,13 @@ const update = async (req, res, next) => {
 const switchStatus = async (req, res, next) => {
   const { contactId } = req.params;
   const { favorite } = req.body;
+  const { _id } = req.user;
 
   if (favorite === undefined) {
     return res.status(400).json({ message: "Missing field favorite" });
   }
   try {
-    const result = await service.updateStatusContact(contactId, favorite);
+    const result = await service.updateStatusContact(contactId, favorite, _id);
     if (result) {
       res.json({
         status: "success",
@@ -146,6 +157,18 @@ const switchStatus = async (req, res, next) => {
   }
 };
 
+const getFavorite = async (req, res, next) => {
+  const { favorite } = req.query;
+  console.log(req.user.id, favorite);
+
+  try {
+    const contacts = await service.getFavoriteContacts(req.user._id, favorite);
+    res.json(contacts);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   get,
   getById,
@@ -153,4 +176,5 @@ module.exports = {
   create,
   update,
   switchStatus,
+  getFavorite,
 };

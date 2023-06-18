@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const ctrlContact = require("../../controllers/contacts");
+
 const mongoose = require("mongoose");
 
 const validateObjectId = (req, res, next) => {
@@ -11,7 +12,7 @@ const validateObjectId = (req, res, next) => {
   next();
 };
 
-router.get("/", ctrlContact.get);
+router.get("/", ctrlContact.get, ctrlContact.getFavorite);
 
 router.get("/:contactId", ctrlContact.getById);
 

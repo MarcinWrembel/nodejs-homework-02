@@ -26,6 +26,10 @@ const contactSchema = new Schema(
       default: false,
       required: [true, "Set is favorite for a contact"],
     },
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: "user",
+    },
   },
   { collection: "contacts", versionKey: false }
 );

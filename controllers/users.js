@@ -2,7 +2,14 @@ const service = require("../service");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const gravatar = require("gravatar");
+const path = require("path");
+const fs = require("fs");
+
+const Jimp = require("jimp");
+
 require("dotenv").config();
+
 const secret = process.env.SECRET;
 
 const postSchema = Joi.object({
@@ -37,7 +44,6 @@ const logIn = async (req, res, _) => {
 
   const payload = {
     id: user.id,
-    email: user.email,
   };
 
   const token = jwt.sign(payload, secret, { expiresIn: "1h" });
@@ -65,6 +71,8 @@ const create = async (req, res, next) => {
     return;
   }
 
+  const avatarURL = gravatar.url(email, { s: "100", r: "g", d: "retro" }, true);
+
   const user = await service.getUser(email);
   if (user) {
     return res.status(409).json({
@@ -76,14 +84,13 @@ const create = async (req, res, next) => {
   }
 
   try {
-    const newUser = new User({ email, password });
+    const newUser = new User({ email, password, avatarURL });
     await newUser.setPassword(password);
-    await newUser.save();
-
+    newUser.save();
     res.status(201).json({
       status: "Registration successful",
       code: 201,
-      user: { email, subscription: "starter" },
+      user: { email, subscription: "starter", avatarURL },
     });
   } catch (err) {
     console.error(err);
@@ -147,10 +154,49 @@ const updateSub = async (req, res, next) => {
   }
 };
 
+const updateImageURL = async (req, res, next) => {
+  const avatar = req.file;
+  const { _id } = req.user;
+
+  const storeImage = path.join(process.cwd(), "public", "avatars");
+  const avatarPath = path.join(storeImage, `${avatar.originalname}`);
+  const avatarURL = `/avatars/${avatar.originalname}`;
+
+  try {
+    const avatarResized = await Jimp.read(avatar.path);
+    avatarResized.resize(250, 250);
+
+    await avatarResized.writeAsync(avatarPath);
+
+    await fs.promises.unlink(avatar.path);
+  } catch (err) {
+    await fs.promises.unlink(avatar.path);
+    return next(err);
+  }
+
+  try {
+
+    const result = await service.updateAvatar(avatarURL, _id);
+    if (result) {
+      res.json({
+        status: "success",
+        code: 200,
+        message: "Avatar was updated",
+        data: { avatarURL },
+      });
+    }
+  } catch (err) {
+    console.log(err.message);
+
+    next(err);
+  }
+};
+
 module.exports = {
   create,
   getCurrent,
   logIn,
   logOut,
   updateSub,
+  updateImageURL,
 };

@@ -175,7 +175,6 @@ const updateImageURL = async (req, res, next) => {
   }
 
   try {
-
     const result = await service.updateAvatar(avatarURL, _id);
     if (result) {
       res.json({

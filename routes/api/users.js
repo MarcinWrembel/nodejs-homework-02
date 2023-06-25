@@ -1,16 +1,25 @@
 const express = require("express");
 const router = express.Router();
 const ctrlUser = require("../../controllers/users");
-const ctrlAuth = require("../../middleware/auth");
+const { authMiddleware, avatarUploadMiddleware } = require("../../middleware");
 
-router.patch("/", ctrlAuth.auth, ctrlUser.updateSub);
+// const avatarUploadMiddleware = require("../../middleware/avatarUpload");
+
+router.patch("/", authMiddleware, ctrlUser.updateSub);
+
+router.patch(
+  "/avatars",
+  authMiddleware,
+  avatarUploadMiddleware,
+  ctrlUser.updateImageURL
+);
 
 router.post("/signup", ctrlUser.create);
 
 router.post("/login", ctrlUser.logIn);
 
-router.get("/logout", ctrlAuth.auth, ctrlUser.logOut);
+router.get("/logout", authMiddleware, ctrlUser.logOut);
 
-router.get("/current", ctrlAuth.auth, ctrlUser.getCurrent);
+router.get("/current", authMiddleware, ctrlUser.getCurrent);
 
 module.exports = router;

@@ -26,6 +26,9 @@ const userSchema = new Schema(
       type: String,
       default: null,
     },
+    avatarURL: {
+      type: String,
+    },
   },
   { collection: "users", versionKey: false }
 );

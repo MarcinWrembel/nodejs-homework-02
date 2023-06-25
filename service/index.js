@@ -51,15 +51,24 @@ const updateSubscription = (subscription, owner) => {
   );
 };
 
+const updateAvatar = (avatarURL, owner) => {
+  return User.findByIdAndUpdate(
+    { _id: owner },
+    { $set: { avatarURL } },
+    { new: true }
+  );
+};
+
 module.exports = {
   getAllContacts,
   getContactById,
-  createContact,
-  updateContact,
-  removeContact,
-  updateStatusContact,
-  createtUser,
   getUser,
+  createContact,
+  createtUser,
+  removeContact,
   getFavoriteContacts,
+  updateAvatar,
+  updateContact,
+  updateStatusContact,
   updateSubscription,
 };

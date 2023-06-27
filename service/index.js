@@ -43,6 +43,10 @@ const getUser = (email) => {
   return User.findOne({ email });
 };
 
+const getUserWithToken = (verificationToken) => {
+  return User.findOne({ verificationToken });
+};
+
 const updateSubscription = (subscription, owner) => {
   return User.findByIdAndUpdate(
     { _id: owner },
@@ -63,6 +67,7 @@ module.exports = {
   getAllContacts,
   getContactById,
   getUser,
+  getUserWithToken,
   createContact,
   createtUser,
   removeContact,

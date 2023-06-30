@@ -1,4 +1,5 @@
 const service = require("../service");
+const { validateContact } = require("../utils/validation");
 
 const get = async (req, res, next) => {
   const { favorite } = req.query;
@@ -77,6 +78,17 @@ const remove = async (req, res, next) => {
 const create = async (req, res, next) => {
   const { name, email, phone } = req.body;
   const { _id } = req.user;
+
+  const validationResult = validateContact.validate({ name, email, phone });
+
+  if (validationResult.error) {
+    res.status(400).json({
+      message: "data are invalid!",
+      data: validationResult.error.message,
+    });
+    return;
+  }
+
   try {
     const result = await service.createContact({ name, email, phone }, _id);
 

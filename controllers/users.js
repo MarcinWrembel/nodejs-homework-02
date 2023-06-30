@@ -1,5 +1,5 @@
 const service = require("../service");
-const Joi = require("joi");
+const { validateUser } = require("../utils/validation");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const gravatar = require("gravatar");
@@ -8,24 +8,17 @@ const fs = require("fs");
 
 const Jimp = require("jimp");
 const { nanoid } = require("nanoid");
-// const sendMailMessage = require("../utils/mailing");
-const sgMail = require("@sendgrid/mail");
+const sendMailMessage = require("../utils/mailing");
 
 require("dotenv").config();
 
 const secret = process.env.SECRET;
 
-const postSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().pattern(
-    /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,30}$/
-  ),
-});
 
 const logIn = async (req, res, _) => {
   const { email, password } = req.body;
 
-  const validationResult = postSchema.validate({ email, password });
+  const validationResult = validateUser.validate({ email, password });
 
   if (validationResult.error) {
     res.status(400).json({
@@ -64,7 +57,7 @@ const logIn = async (req, res, _) => {
 
 const create = async (req, res, next) => {
   const { email, password } = req.body;
-  const validationResult = postSchema.validate({ email, password });
+  const validationResult = validateUser.validate({ email, password });
 
   if (validationResult.error) {
     return res.status(400).json({
@@ -90,19 +83,9 @@ const create = async (req, res, next) => {
     const newUser = new User({ email, password, avatarURL, verificationToken });
     await newUser.setPassword(password);
 
-    // const mailTo = "marcin.wrembel@interia.pl";
-    // sendMailMessage(mailTo);
+    sendMailMessage(email, verificationToken);
+
     newUser.save();
-
-    sgMail.setApiKey(process.env.SEND_GRID_API_KEY);
-    const msg = {
-      to: "mw84.mm@gmail.com",
-      from: "mw84.mm@gmail.com",
-      subject: `Sending email from `,
-    };
-
-    await sgMail.send(msg);
-    console.log("done");
 
     return res.status(201).json({
       status: "Registration successful",
@@ -233,6 +216,42 @@ const updateImageURL = async (req, res, next) => {
   }
 };
 
+const resendVerificationEmail = async (req, res, next) => {
+  const { email } = req.body;
+
+  const validationResult = validateUser.validate({ email });
+
+  if (validationResult.error) {
+    return res.status(400).json({
+      message: "missing required field email",
+      details: validationResult.error.message,
+    });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (user.verificationToken === "null") {
+      return res.status(400).json({
+        status: "Bad request",
+        code: 400,
+        message: "Verification has already been passed",
+      });
+    }
+
+    sendMailMessage(user.email, user.verificationToken);
+
+    return res.status(200).json({
+      status: "Success",
+      code: 200,
+      message: "Verification email sent",
+    });
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+};
+
 module.exports = {
   create,
   getCurrent,
@@ -241,4 +260,5 @@ module.exports = {
   logOut,
   updateSub,
   updateImageURL,
+  resendVerificationEmail,
 };

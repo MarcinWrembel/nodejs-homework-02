@@ -1,5 +1,5 @@
 const service = require("../service");
-const Joi = require("joi");
+const { validateUser } = require("../utils/validation");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const gravatar = require("gravatar");
@@ -7,22 +7,18 @@ const path = require("path");
 const fs = require("fs");
 
 const Jimp = require("jimp");
+const { nanoid } = require("nanoid");
+const sendMailMessage = require("../utils/mailing");
 
 require("dotenv").config();
 
 const secret = process.env.SECRET;
 
-const postSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().pattern(
-    /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,30}$/
-  ),
-});
 
 const logIn = async (req, res, _) => {
   const { email, password } = req.body;
 
-  const validationResult = postSchema.validate({ email, password });
+  const validationResult = validateUser.validate({ email, password });
 
   if (validationResult.error) {
     res.status(400).json({
@@ -61,17 +57,17 @@ const logIn = async (req, res, _) => {
 
 const create = async (req, res, next) => {
   const { email, password } = req.body;
-  const validationResult = postSchema.validate({ email, password });
+  const validationResult = validateUser.validate({ email, password });
 
   if (validationResult.error) {
-    res.status(400).json({
+    return res.status(400).json({
       message: "data are invalid!",
       details: validationResult.error.message,
     });
-    return;
   }
 
   const avatarURL = gravatar.url(email, { s: "100", r: "g", d: "retro" }, true);
+  const verificationToken = nanoid();
 
   const user = await service.getUser(email);
   if (user) {
@@ -84,13 +80,17 @@ const create = async (req, res, next) => {
   }
 
   try {
-    const newUser = new User({ email, password, avatarURL });
+    const newUser = new User({ email, password, avatarURL, verificationToken });
     await newUser.setPassword(password);
+
+    sendMailMessage(email, verificationToken);
+
     newUser.save();
-    res.status(201).json({
+
+    return res.status(201).json({
       status: "Registration successful",
       code: 201,
-      user: { email, subscription: "starter", avatarURL },
+      user: { email, subscription: "starter", avatarURL, verificationToken },
     });
   } catch (err) {
     console.error(err);
@@ -106,6 +106,31 @@ const getCurrent = async (req, res, next) => {
     code: 200,
     message: "Authorization was successful",
     data: { user: email, subscription },
+  });
+};
+
+const checkUser = async (req, res, next) => {
+  const { verificationToken } = req.params;
+
+  const user = await service.getUserWithToken(verificationToken);
+
+  if (user) {
+    user.verificationToken = "null";
+    user.verify = true;
+
+    await user.save();
+
+    res.json({
+      status: "success",
+      code: 200,
+      message: "Verification successful",
+    });
+  }
+
+  return res.json({
+    status: "not found",
+    code: 404,
+    message: "User not found",
   });
 };
 
@@ -191,11 +216,49 @@ const updateImageURL = async (req, res, next) => {
   }
 };
 
+const resendVerificationEmail = async (req, res, next) => {
+  const { email } = req.body;
+
+  const validationResult = validateUser.validate({ email });
+
+  if (validationResult.error) {
+    return res.status(400).json({
+      message: "missing required field email",
+      details: validationResult.error.message,
+    });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (user.verificationToken === "null") {
+      return res.status(400).json({
+        status: "Bad request",
+        code: 400,
+        message: "Verification has already been passed",
+      });
+    }
+
+    sendMailMessage(user.email, user.verificationToken);
+
+    return res.status(200).json({
+      status: "Success",
+      code: 200,
+      message: "Verification email sent",
+    });
+  } catch (err) {
+    console.log(err.message);
+    next(err);
+  }
+};
+
 module.exports = {
   create,
   getCurrent,
+  checkUser,
   logIn,
   logOut,
   updateSub,
   updateImageURL,
+  resendVerificationEmail,
 };
